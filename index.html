@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>後悔しないためのノート</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --coral: #E8734A;
+  --coral-light: #F4A67E;
+  --orange: #F5913E;
+  --warm-bg: #FFF8F3;
+  --warm-bg-deep: #FEF0E5;
+  --text-dark: #4A3728;
+  --text-mid: #7A6455;
+  --text-light: #A08B7A;
+  --white: #FFFFFF;
+  --shadow: 0 8px 32px rgba(200, 120, 60, 0.15);
+}
+
+body {
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  background: var(--warm-bg);
+  color: var(--text-dark);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* Page system */
+.page {
+  display: none;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  animation: fadeIn 0.5s ease;
+}
+.page.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Title Page ===== */
+.title-page {
+  text-align: center;
+  gap: 32px;
+}
+.title-circle {
+  width: min(85vw, 420px);
+  height: min(85vw, 420px);
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--coral), var(--orange));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  box-shadow: var(--shadow);
+  color: var(--white);
+}
+.title-circle h1 {
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.title-circle .subtitle {
+  font-size: clamp(0.85rem, 2.5vw, 1rem);
+  margin-top: 16px;
+  opacity: 0.9;
+  line-height: 1.7;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 48px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.05em;
+  font-family: inherit;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--coral), var(--orange));
+  color: var(--white);
+  box-shadow: 0 4px 16px rgba(232, 115, 74, 0.35);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(232, 115, 74, 0.45); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: var(--white);
+  color: var(--coral);
+  border: 2px solid var(--coral);
+}
+.btn-secondary:hover { background: var(--warm-bg-deep); }
+
+.btn-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ===== Essay Page (Step A) ===== */
+.essay-page {
+  gap: 24px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.essay-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--coral), var(--orange));
+  color: var(--white);
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.essay-title {
+  font-size: clamp(1.3rem, 4vw, 1.8rem);
+  line-height: 1.6;
+  color: var(--coral);
+  font-weight: 700;
+  text-align: center;
+}
+.essay-body {
+  background: var(--white);
+  border-radius: 24px;
+  padding: 32px 28px;
+  line-height: 2;
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  color: var(--text-mid);
+  box-shadow: var(--shadow);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.essay-body p { margin-bottom: 1em; }
+.essay-body p:last-child { margin-bottom: 0; }
+
+/* ===== Question Page (Step B) ===== */
+.question-page {
+  gap: 24px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.question-circle {
+  width: min(88vw, 520px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--white);
+  border: 4px solid var(--coral-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(24px, 6vw, 48px);
+  box-shadow: var(--shadow);
+  gap: 16px;
+}
+.question-circle .q-label {
+  font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+  font-weight: 700;
+  color: var(--coral);
+  text-align: center;
+  line-height: 1.6;
+}
+.question-circle textarea {
+  width: 85%;
+  height: 40%;
+  min-height: 100px;
+  border: 2px solid var(--coral-light);
+  border-radius: 16px;
+  padding: 16px;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  font-family: inherit;
+  color: var(--text-dark);
+  background: var(--warm-bg);
+  resize: none;
+  line-height: 1.8;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.question-circle textarea:focus {
+  border-color: var(--coral);
+}
+.question-circle textarea::placeholder {
+  color: var(--text-light);
+}
+
+.encourage-msg {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  max-width: 480px;
+}
+
+/* ===== Complete Page ===== */
+.complete-page {
+  gap: 32px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+.complete-title {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  color: var(--coral);
+  font-weight: 700;
+  text-align: center;
+}
+.complete-subtitle {
+  color: var(--text-mid);
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+.answer-preview {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.answer-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--coral);
+}
+.answer-card .card-q {
+  font-weight: 700;
+  color: var(--coral);
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.answer-card .card-a {
+  color: var(--text-dark);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+}
+.answer-card .card-a.empty {
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* Navigation */
+.nav-area {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+/* Progress bar */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--coral), var(--orange));
+  transition: width 0.4s ease;
+  z-index: 100;
+}
+
+/* ===== PDF Render (hidden) ===== */
+.pdf-render {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 794px; /* A4 width at 96dpi */
+}
+.pdf-page {
+  width: 794px;
+  height: 1123px; /* A4 height at 96dpi */
+  background: var(--warm-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  position: relative;
+  overflow: hidden;
+}
+.pdf-page .pdf-circle {
+  width: 580px;
+  height: 580px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  text-align: center;
+}
+.pdf-page .pdf-circle.title-type {
+  background: linear-gradient(145deg, var(--coral), var(--orange));
+  color: var(--white);
+}
+.pdf-page .pdf-circle.title-type h2 {
+  font-size: 2.2rem;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.pdf-page .pdf-circle.title-type p {
+  font-size: 1rem;
+  opacity: 0.9;
+  line-height: 1.7;
+}
+.pdf-page .pdf-circle.qa-type {
+  background: var(--white);
+  border: 4px solid var(--coral-light);
+  box-shadow: 0 4px 24px rgba(200, 120, 60, 0.12);
+}
+.pdf-page .pdf-circle.qa-type .pdf-q {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--coral);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+.pdf-page .pdf-circle.qa-type .pdf-a {
+  font-size: 1rem;
+  color: var(--text-dark);
+  line-height: 2;
+  white-space: pre-wrap;
+  max-height: 320px;
+  overflow: hidden;
+  text-align: left;
+  width: 100%;
+  padding: 0 20px;
+}
+.pdf-page .pdf-number {
+  position: absolute;
+  bottom: 40px;
+  right: 60px;
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+.pdf-page .pdf-deco-top {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--coral-light);
+  opacity: 0.15;
+}
+.pdf-page .pdf-deco-bottom {
+  position: absolute;
+  bottom: -30px;
+  left: -30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--orange);
+  opacity: 0.1;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(255,248,243,0.9);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+.loading-overlay.active { display: flex; }
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--coral-light);
+  border-top-color: var(--coral);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: var(--text-mid); font-size: 0.95rem; }
+
+/* Responsive */
+@media (max-width: 480px) {
+  .question-circle {
+    aspect-ratio: auto;
+    border-radius: 32px;
+    padding: 28px 20px;
+    width: 100%;
+  }
+  .question-circle textarea { width: 100%; height: 150px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ===== TITLE PAGE ===== -->
+<div class="page active" id="page-title">
+  <div class="title-circle">
+    <h1>後悔しない<br>ためのノート</h1>
+    <p class="subtitle">あした死んでも後悔しないために<br>今日、自分と向き合ってみよう</p>
+  </div>
+  <button class="btn btn-primary" onclick="goTo('essay-1')">はじめる</button>
+</div>
+
+<!-- ===== Q1 ESSAY ===== -->
+<div class="page essay-page" id="page-essay-1">
+  <span class="essay-number">1</span>
+  <h2 class="essay-title">あなたが人生において、<br>一番大切にしていることは<br>何ですか？</h2>
+  <div class="essay-body">
+    <p>毎日のくり返しの中で、つい忘れてしまうことがあります。</p>
+    <p>朝起きて、仕事に行って、帰ってきて、ごはんを食べて、寝る。そんな「当たり前」の日々が続くと、自分がほんとうは何を大切にしているのか、見えなくなってしまうことがあります。</p>
+    <p>でも、もし明日この世界からいなくなるとしたら──あなたの心に最初に浮かぶのは何でしょうか？</p>
+    <p>家族のこと。友人のこと。自分の夢。健康。自由な時間。誰かの笑顔。</p>
+    <p>正解はありません。あなたの心の中にだけ、答えがあります。少しだけ立ち止まって、自分の胸に手を当てて、聞いてみてください。</p>
+  </div>
+  <div class="nav-area">
+    <button class="btn btn-secondary" onclick="goTo('title')">もどる</button>
+    <button class="btn btn-primary" onclick="goTo('q-1')">質問に答える</button>
+  </div>
+</div>
+
+<!-- ===== Q1 ANSWER ===== -->
+<div class="page question-page" id="page-q-1">
+  <span class="essay-number">1</span>
+  <div class="question-circle">
+    <p class="q-label">あなたが人生において、<br>一番大切にしていることは<br>何ですか？</p>
+    <textarea id="answer-1" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()"></textarea>
+  </div>
+  <p class="encourage-msg">正解も不正解もありません。<br>心に浮かんだことを、そのまま書いてみてください。</p>
+  <div class="nav-area">
+    <button class="btn btn-secondary" onclick="goTo('essay-1')">もどる</button>
+    <button class="btn btn-primary" onclick="goTo('essay-2')">次へ</button>
+  </div>
+</div>
+
+<!-- ===== Q2 ESSAY ===== -->
+<div class="page essay-page" id="page-essay-2">
+  <span class="essay-number">2</span>
+  <h2 class="essay-title">あなたが無意識に<br>あきらめたことは、<br>何ですか？</h2>
+  <div class="essay-body">
+    <p>人は成長するにつれて、「現実的」になっていきます。</p>
+    <p>子どもの頃に夢見ていたこと、若い頃に情熱を燃やしていたこと。いつの間にか「そんなの無理だよ」と自分に言い聞かせて、心のどこかにしまい込んでしまったものはありませんか？</p>
+    <p>あきらめたことが悪いわけではありません。でも、「無意識に」あきらめてしまったことは、心のどこかでまだくすぶっているかもしれません。</p>
+    <p>忘れたふりをしていた夢。やりたかったけど、環境や周りの目を気にしてやめたこと。「いつかやろう」と思ったまま、いつの間にか消えてしまった願い。</p>
+    <p>今ここで、もう一度思い出してみませんか。それは、あなたの人生をもっと豊かにするヒントかもしれません。</p>
+  </div>
+  <div class="nav-area">
+    <button class="btn btn-secondary" onclick="goTo('q-1')">もどる</button>
+    <button class="btn btn-primary" onclick="goTo('q-2')">質問に答える</button>
+  </div>
+</div>
+
+<!-- ===== Q2 ANSWER ===== -->
+<div class="page question-page" id="page-q-2">
+  <span class="essay-number">2</span>
+  <div class="question-circle">
+    <p class="q-label">あなたが無意識に<br>あきらめたことは、<br>何ですか？</p>
+    <textarea id="answer-2" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()"></textarea>
+  </div>
+  <p class="encourage-msg">あきらめたことに気づくだけで、<br>新しい一歩が始まります。</p>
+  <div class="nav-area">
+    <button class="btn btn-secondary" onclick="goTo('essay-2')">もどる</button>
+    <button class="btn btn-primary" onclick="goTo('essay-3')">次へ</button>
+  </div>
+</div>
+
+<!-- ===== Q3 ESSAY ===== -->
+<div class="page essay-page" id="page-essay-3">
+  <span class="essay-number">3</span>
+  <h2 class="essay-title">ほっとする時間、<br>安心できる時間を<br>増やすために<br>何ができますか？</h2>
+  <div class="essay-body">
+    <p>がんばることは素晴らしいことです。でも、がんばり続けるだけでは、心も体も疲れてしまいます。</p>
+    <p>ふと息をつける時間、「ああ、安心するなぁ」と感じる瞬間──それは、人生の中でとても大切な宝物です。</p>
+    <p>温かいお茶を飲む時間。好きな音楽を聴くこと。散歩をすること。誰かとたわいもない話をすること。お風呂にゆっくり浸かること。</p>
+    <p>小さなことでいいんです。日々の中に「ほっとする瞬間」を少しずつ増やしていくこと。それが、あなたの人生をより穏やかで、より豊かなものにしてくれます。</p>
+    <p>あなたにとっての「ほっとする時間」は、どんな時間ですか？</p>
+  </div>
+  <div class="nav-area">
+    <button class="btn btn-secondary" onclick="goTo('q-2')">もどる</button>
+    <button class="btn btn-primary" onclick="goTo('q-3')">質問に答える</button>
+  </div>
+</div>
+
+<!-- ===== Q3 ANSWER ===== -->
+<div class="page question-page" id="page-q-3">
+  <span class="essay-number">3</span>
+  <div class="question-circle">
+    <p class="q-label">ほっとする時間、<br>安心できる時間を増やすために<br>何ができますか？</p>
+    <textarea id="answer-3" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()"></textarea>
+  </div>
+  <p class="encourage-msg">小さな幸せに気づけることが、<br>いちばんの豊かさです。</p>
+  <div class="nav-area">
+    <button class="btn btn-secondary" onclick="goTo('essay-3')">もどる</button>
+    <button class="btn btn-primary" onclick="goTo('essay-4')">次へ</button>
+  </div>
+</div>
+
+<!-- ===== Q4 ESSAY ===== -->
+<div class="page essay-page" id="page-essay-4">
+  <span class="essay-number">4</span>
+  <h2 class="essay-title">それって鼻血が出る？<br>鼻血が出るほど<br>興奮する目標は？</h2>
+  <div class="essay-body">
+    <p>最後の質問は、ちょっとユニークです。</p>
+    <p>「鼻血が出るほど興奮する」──そんな目標、あなたにはありますか？</p>
+    <p>考えただけでワクワクして、胸がドキドキして、居ても立っても居られなくなるような目標。常識的に考えたら「無理かも」と思うけど、想像するだけで体中にエネルギーがみなぎるような夢。</p>
+    <p>「そこそこ」の目標では、人は本気になれません。でも、鼻血が出るほどの目標なら、困難があっても乗り越えられます。なぜなら、やりたくてたまらないから。</p>
+    <p>世間の目なんて気にしなくていいんです。「そんなの無理だよ」という声は聞かなくていいんです。あなたの心が本当に求めているもの、それを今ここで、思いっきり書いてみてください。</p>
+  </div>
+  <div class="nav-area">
+    <button class="btn btn-secondary" onclick="goTo('q-3')">もどる</button>
+    <button class="btn btn-primary" onclick="goTo('q-4')">質問に答える</button>
+  </div>
+</div>
+
+<!-- ===== Q4 ANSWER ===== -->
+<div class="page question-page" id="page-q-4">
+  <span class="essay-number">4</span>
+  <div class="question-circle">
+    <p class="q-label">鼻血が出るほど<br>興奮する目標は<br>何ですか？</p>
+    <textarea id="answer-4" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()"></textarea>
+  </div>
+  <p class="encourage-msg">ワクワクする気持ちが、<br>あなたの人生を動かすエンジンです。</p>
+  <div class="nav-area">
+    <button class="btn btn-secondary" onclick="goTo('essay-4')">もどる</button>
+    <button class="btn btn-primary" onclick="goTo('complete')">完了する</button>
+  </div>
+</div>
+
+<!-- ===== COMPLETE PAGE ===== -->
+<div class="page complete-page" id="page-complete">
+  <h2 class="complete-title">おつかれさまでした！</h2>
+  <p class="complete-subtitle">あなたの答えを振り返ってみましょう。<br>これが、今日のあなたの「後悔しないためのノート」です。</p>
+  <div class="answer-preview" id="answerPreview"></div>
+  <div class="btn-group">
+    <button class="btn btn-secondary" onclick="goTo('q-4')">もどる</button>
+    <button class="btn btn-primary" onclick="exportPDF()">PDFに出力する</button>
+  </div>
+</div>
+
+<!-- ===== PDF RENDER AREA ===== -->
+<div class="pdf-render" id="pdfRender"></div>
+
+<!-- ===== LOADING OVERLAY ===== -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p class="loading-text">PDFを作成しています…</p>
+</div>
+
+<script>
+const questions = [
+  'あなたが人生において、一番大切にしていることは何ですか？',
+  'あなたが無意識にあきらめたことは、何ですか？',
+  'ほっとする時間、安心できる時間を増やすために何ができますか？',
+  '鼻血が出るほど興奮する目標は何ですか？'
+];
+
+const totalSteps = 10; // title, (essay+q)*4, complete
+const pageOrder = ['title','essay-1','q-1','essay-2','q-2','essay-3','q-3','essay-4','q-4','complete'];
+
+function goTo(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + pageId);
+  if (target) {
+    target.classList.remove('active');
+    // Force reflow for animation
+    void target.offsetWidth;
+    target.classList.add('active');
+  }
+
+  // Update progress
+  const idx = pageOrder.indexOf(pageId);
+  const pct = idx >= 0 ? (idx / (totalSteps - 1)) * 100 : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  // Build preview on complete page
+  if (pageId === 'complete') buildPreview();
+
+  // Scroll to top
+  window.scrollTo(0, 0);
+}
+
+function saveAnswers() {
+  const data = {};
+  for (let i = 1; i <= 4; i++) {
+    data['answer-' + i] = document.getElementById('answer-' + i).value;
+  }
+  localStorage.setItem('noregret-note', JSON.stringify(data));
+}
+
+function loadAnswers() {
+  try {
+    const raw = localStorage.getItem('noregret-note');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById('answer-' + i);
+      if (el && data['answer-' + i]) el.value = data['answer-' + i];
+    }
+  } catch(e) {}
+}
+
+function buildPreview() {
+  const container = document.getElementById('answerPreview');
+  container.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const ans = document.getElementById('answer-' + (i + 1)).value.trim();
+    const card = document.createElement('div');
+    card.className = 'answer-card';
+    card.innerHTML =
+      '<p class="card-q">Q' + (i + 1) + '. ' + questions[i] + '</p>' +
+      '<p class="card-a' + (ans ? '' : ' empty') + '">' +
+      (ans ? escapeHtml(ans) : '（未記入）') + '</p>';
+    container.appendChild(card);
+  }
+}
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+async function exportPDF() {
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.add('active');
+
+  try {
+    const container = document.getElementById('pdfRender');
+    container.innerHTML = '';
+
+    // Title page
+    container.innerHTML += `
+      <div class="pdf-page" id="pdf-p0">
+        <div class="pdf-deco-top"></div>
+        <div class="pdf-deco-bottom"></div>
+        <div class="pdf-circle title-type">
+          <h2>後悔しない<br>ためのノート</h2>
+          <p>あした死んでも後悔しないために<br>今日、自分と向き合ってみよう</p>
+        </div>
+      </div>
+    `;
+
+    // Q&A pages
+    for (let i = 0; i < 4; i++) {
+      const ans = document.getElementById('answer-' + (i + 1)).value.trim() || '（未記入）';
+      container.innerHTML += `
+        <div class="pdf-page" id="pdf-p${i + 1}">
+          <div class="pdf-deco-top"></div>
+          <div class="pdf-deco-bottom"></div>
+          <div class="pdf-circle qa-type">
+            <p class="pdf-q">Q${i + 1}. ${questions[i]}</p>
+            <p class="pdf-a">${escapeHtml(ans)}</p>
+          </div>
+          <span class="pdf-number">${i + 1} / 4</span>
+        </div>
+      `;
+    }
+
+    // Wait a bit for render
+    await new Promise(r => setTimeout(r, 300));
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const pages = container.querySelectorAll('.pdf-page');
+    for (let i = 0; i < pages.length; i++) {
+      const canvas = await html2canvas(pages[i], {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#FFF8F3'
+      });
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+    }
+
+    pdf.save('後悔しないためのノート.pdf');
+  } catch (e) {
+    console.error('PDF export error:', e);
+    alert('PDF出力中にエラーが発生しました。もう一度お試しください。');
+  } finally {
+    overlay.classList.remove('active');
+  }
+}
+
+// Init
+loadAnswers();
+</script>
+</body>
+</html>
