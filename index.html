@@ -420,7 +420,7 @@ body {
     <h1>後悔しない<br>ためのノート</h1>
     <p class="subtitle">あした死んでも後悔しないために<br>今日、自分と向き合ってみよう</p>
   </div>
-  <button class="btn btn-primary" onclick="goTo('essay-1')">はじめる</button>
+  <button class="btn btn-primary" onclick="clearAll(); goTo('essay-1')">はじめる</button>
 </div>
 
 <!-- ===== Q1 ESSAY ===== -->
@@ -450,7 +450,7 @@ body {
   <span class="essay-number">1</span>
   <div class="question-circle">
     <p class="q-label">あなたが人生において、<br>一番大切にしていることは<br>何ですか？</p>
-    <textarea id="answer-1" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()"></textarea>
+    <textarea id="answer-1" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()" autocomplete="off"></textarea>
   </div>
   <p class="encourage-msg">すぐ答えられた？<br><br>僕は、<br>自分の可能性と<br>あなたの新しい可能性の扉を開くことを<br>人生で一番大切にしていて、<br>それで作家をやっています。</p>
   <div class="nav-area">
@@ -482,7 +482,7 @@ body {
   <span class="essay-number">2</span>
   <div class="question-circle">
     <p class="q-label">あなたが無意識に<br>あきらめたことは、<br>何ですか？</p>
-    <textarea id="answer-2" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()"></textarea>
+    <textarea id="answer-2" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()" autocomplete="off"></textarea>
   </div>
   <p class="encourage-msg">あなたなら、絶対、やれます！</p>
   <div class="nav-area">
@@ -512,7 +512,7 @@ body {
   <span class="essay-number">3</span>
   <div class="question-circle">
     <p class="q-label">ほっとする時間、<br>安心できる時間を増やすために<br>何ができますか？</p>
-    <textarea id="answer-3" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()"></textarea>
+    <textarea id="answer-3" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()" autocomplete="off"></textarea>
   </div>
   <p class="encourage-msg"></p>
   <div class="nav-area">
@@ -544,7 +544,7 @@ body {
   <span class="essay-number">4</span>
   <div class="question-circle">
     <p class="q-label">それって、興奮する？<br>それって、伝説になる？<br>それって、鼻血、出る？<br>それって、祭りになる？</p>
-    <textarea id="answer-4" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()"></textarea>
+    <textarea id="answer-4" placeholder="あなたの答えをここに書いてください…" oninput="saveAnswers()" autocomplete="off"></textarea>
   </div>
   <p class="encourage-msg">その答えを探すと、人生が伝説になり、祭りになります。</p>
   <div class="nav-area">
@@ -604,6 +604,18 @@ function goTo(pageId) {
 
   // Scroll to top
   window.scrollTo(0, 0);
+}
+
+function clearAll() {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('answer-' + i);
+    el.value = '';
+    el.defaultValue = '';
+    el.setAttribute('value', '');
+  }
+  localStorage.removeItem('noregret-note');
+  document.getElementById('pdfRender').innerHTML = '';
+  document.getElementById('answerPreview').innerHTML = '';
 }
 
 function saveAnswers() {
@@ -707,19 +719,13 @@ async function exportPDF() {
     alert('PDF出力中にエラーが発生しました。もう一度お試しください。');
   } finally {
     overlay.classList.remove('active');
-    // Clear all answers for next person
-    for (let i = 1; i <= 4; i++) {
-      document.getElementById('answer-' + i).value = '';
-    }
-    localStorage.removeItem('noregret-note');
-    document.getElementById('pdfRender').innerHTML = '';
-    document.getElementById('answerPreview').innerHTML = '';
+    clearAll();
     goTo('title');
   }
 }
 
-// Init
-loadAnswers();
+// Init - always start clean
+clearAll();
 </script>
 </body>
 </html>
