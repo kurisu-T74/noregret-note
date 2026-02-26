@@ -608,10 +608,14 @@ function goTo(pageId) {
 
 function clearAll() {
   for (let i = 1; i <= 4; i++) {
-    const el = document.getElementById('answer-' + i);
-    el.value = '';
-    el.defaultValue = '';
-    el.setAttribute('value', '');
+    const old = document.getElementById('answer-' + i);
+    const fresh = document.createElement('textarea');
+    fresh.id = 'answer-' + i;
+    fresh.placeholder = 'あなたの答えをここに書いてください…';
+    fresh.setAttribute('oninput', 'saveAnswers()');
+    fresh.setAttribute('autocomplete', 'off');
+    fresh.setAttribute('name', 'answer-' + i + '-' + Date.now());
+    old.parentNode.replaceChild(fresh, old);
   }
   localStorage.removeItem('noregret-note');
   document.getElementById('pdfRender').innerHTML = '';
@@ -726,6 +730,11 @@ async function exportPDF() {
 
 // Init - always start clean
 clearAll();
+
+// Safari bfcache: clear again when page is restored from cache
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) clearAll();
+});
 </script>
 </body>
 </html>
