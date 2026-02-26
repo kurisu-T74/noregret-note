@@ -702,6 +702,13 @@ async function exportPDF() {
     }
 
     pdf.save('後悔しないためのノート.pdf');
+
+    // Clear all answers for next person
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById('answer-' + i).value = '';
+    }
+    localStorage.removeItem('noregret-note');
+    goTo('title');
   } catch (e) {
     console.error('PDF export error:', e);
     alert('PDF出力中にエラーが発生しました。もう一度お試しください。');
